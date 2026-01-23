@@ -614,6 +614,74 @@ func TestDo_RequestHeaders(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestAPIError_UnmarshalJSON(t *testing.T) {
+	tests := []struct {
+		name     string
+		jsonBody string
+		wantErr  bool
+	}{
+		{
+			name:     "valid APIError JSON",
+			jsonBody: `{"error":"invalid input","code":"BAD_REQUEST"}`,
+			wantErr:  false,
+		},
+		{
+			name:     "malformed JSON",
+			jsonBody: `{"error":"test" invalid}`,
+			wantErr:  true,
+		},
+		{
+			name:     "empty object",
+			jsonBody: `{}`,
+			wantErr:  false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var apiErr APIError
+			err := json.Unmarshal([]byte(tt.jsonBody), &apiErr)
+
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				// Body is nil, StatusCode is 0 - this is correct behavior
+				assert.Nil(t, apiErr.Body)
+				assert.Equal(t, 0, apiErr.StatusCode)
+			}
+		})
+	}
+}
+
+func TestClient_NetworkErrors(t *testing.T) {
+	// Test dial timeout - use invalid host
+	client, err := New("http://nonexistent.invalid:9999")
+	require.NoError(t, err)
+
+	var resp types.LeaseResponse
+	err = client.do(context.Background(), http.MethodGet, "/test", nil, &resp)
+	assert.Error(t, err)
+}
+
+func TestClient_ContextTimeout(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		time.Sleep(100 * time.Millisecond)
+	}))
+	defer server.Close()
+
+	client, err := New(server.URL)
+	require.NoError(t, err)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Millisecond)
+	defer cancel()
+
+	var resp types.LeaseResponse
+	err = client.do(ctx, http.MethodGet, "/test", nil, &resp)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "context deadline exceeded")
+}
+
 func intPtr(i int) *int {
 	return &i
 }
