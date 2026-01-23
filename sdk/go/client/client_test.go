@@ -436,6 +436,19 @@ func TestDo_ErrorHandling(t *testing.T) {
 			},
 		},
 		{
+			name: "429 Rate Limit - Too many Request",
+			serverResponse: func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(http.StatusTooManyRequests)
+				w.Write([]byte("Rate limit exceeded. Try again in 60s"))
+			},
+			wantErr: true,
+			checkError: func(t *testing.T, err error) {
+				apiErr := err.(*APIError)
+				assert.Equal(t, 429, apiErr.StatusCode)
+				assert.Contains(t, string(apiErr.Body), "Rate limit")
+			},
+		},
+		{
 			name: "500 Internal Server Error",
 			serverResponse: func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusInternalServerError)
