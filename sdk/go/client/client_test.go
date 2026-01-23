@@ -659,7 +659,6 @@ func TestAPIError_UnmarshalJSON(t *testing.T) {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)
-				// Body is nil, StatusCode is 0 - this is correct behavior
 				assert.Nil(t, apiErr.Body)
 				assert.Equal(t, 0, apiErr.StatusCode)
 			}
@@ -668,7 +667,7 @@ func TestAPIError_UnmarshalJSON(t *testing.T) {
 }
 
 func TestClient_NetworkErrors(t *testing.T) {
-	// Test dial timeout - use invalid host
+	// Use invalid host
 	client, err := New("http://nonexistent.invalid:9999")
 	require.NoError(t, err)
 
