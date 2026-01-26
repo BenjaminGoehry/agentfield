@@ -14,9 +14,7 @@ type Audio struct {
 	Format string `json:"format,omitempty"`
 }
 
-// detectMIMEType detects the MIME type from a file path.
 func detectMIMEType(path string) string {
-	// Simple mapping; consider using a library like github.com/gabriel-vasile/mimetype for robustness
 	switch {
 	case strings.HasSuffix(path, ".png"):
 		return "image/png"
@@ -31,9 +29,7 @@ func detectMIMEType(path string) string {
 	}
 }
 
-// detectAudioFormat detects the audio format from a file path.
 func detectAudioFormat(path string) string {
-	// Simple mapping; consider using a library for robustness
 	switch {
 	case strings.HasSuffix(path, ".mp3"):
 		return "mp3"

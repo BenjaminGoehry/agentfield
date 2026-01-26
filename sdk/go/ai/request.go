@@ -188,6 +188,10 @@ func WithImageURL(url string) Option {
 
 func WithImageBytes(data []byte, mimeType string) Option {
 	return func(r *Request) error {
+		if len(data) == 0 {
+			return nil
+		}
+
 		encoded := base64.StdEncoding.EncodeToString(data)
 
 		r.Images = append(r.Images, Image{
@@ -228,6 +232,10 @@ func WithAudioURL(url string) Option {
 
 func WithAudioBytes(data []byte, format string) Option {
 	return func(r *Request) error {
+		if len(data) == 0 {
+			return nil
+		}
+
 		encoded := base64.StdEncoding.EncodeToString(data)
 
 		r.Audios = append(r.Audios, Audio{

@@ -146,6 +146,35 @@ Functional options for customizing AI requests:
 - `ai.WithStream()` - Enable streaming
 - `ai.WithJSONMode()` - Enable JSON object mode
 - `ai.WithSchema(schema interface{})` - Enable structured outputs with schema
+##### Multimodal
+- `ai.WithImageFile(path string)` - Attach an image from a local file
+- `ai.WithImageURL(url string)` - Attach an image from a remote URL
+- `ai.WithImageBytes(data []byte, mimeType string)` - Add an image from raw bytes (SDK encodes automatically)
+- `ai.WithAudioFile(path string)` - Attach audio from a local file
+- `ai.WithAudioURL(url string)` - Attach audio from a remote URL
+- `ai.WithAudioBytes(data []byte, format string)` - Add audio from raw bytes (SDK encodes automatically)
+
+### Multimodal Inputs (Images & Audio)
+
+You can attach images or audio files to AI requests.
+
+```go
+// Image from file
+response, _ := agent.AI(ctx, "Describe this image",
+    ai.WithImageFile("./photo.jpg"),
+)
+
+// Audio from URL
+response, _ = agent.AI(ctx, "Transcribe this audio",
+    ai.WithAudioURL("https://example.com/audio.mp3"),
+)
+
+// Image from bytes
+data, _ := os.ReadFile("image.png")
+response, _ = agent.AI(ctx, "What's in this image?",
+    ai.WithImageBytes(data, "image/png"),
+)
+```
 
 ### Response Methods
 
