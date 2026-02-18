@@ -41,9 +41,28 @@ type Message struct {
 }
 
 type ContentPart struct {
-	Type     string `json:"type"` // "text" or "image_url"
-	Text     string `json:"text,omitempty"`
-	ImageURL string `json:"image_url,omitempty"`
+	Type     string        `json:"type"` // "text" or "image_url"
+	Text     string        `json:"text,omitempty"`
+	ImageURL *ImageURLData `json:"image_url,omitempty"`
+}
+
+// ImageURLData holds the URL and optional detail level for image content parts.
+type ImageURLData struct {
+	URL    string `json:"url"`
+	Detail string `json:"detail,omitempty"`
+}
+
+// MarshalJSON serializes a Message. If the content is a single text part,
+// it serializes content as a plain string for maximum API compatibility.
+func (m Message) MarshalJSON() ([]byte, error) {
+	if len(m.Content) == 1 && m.Content[0].Type == "text" && m.Content[0].ImageURL == nil {
+		return json.Marshal(struct {
+			Role    string `json:"role"`
+			Content string `json:"content"`
+		}{Role: m.Role, Content: m.Content[0].Text})
+	}
+	type Alias Message
+	return json.Marshal((Alias)(m))
 }
 
 func (m *Message) UnmarshalJSON(data []byte) error {
@@ -216,14 +235,17 @@ func WithImageFile(path string) Option {
 
 		last := &r.Messages[len(r.Messages)-1]
 		last.Content = append(last.Content, ContentPart{
-			Type:     "input_image",
-			ImageURL: "data:" + mimeType + ";base64," + encoded,
+			Type: "image_url",
+			ImageURL: &ImageURLData{
+				URL: "data:" + mimeType + ";base64," + encoded,
+			},
 		})
 
 		return nil
 	}
 }
 
+// WithImageURL attaches an image from a remote URL.
 func WithImageURL(url string) Option {
 	return func(r *Request) error {
 		if len(r.Messages) == 0 {
@@ -235,14 +257,17 @@ func WithImageURL(url string) Option {
 
 		last := &r.Messages[len(r.Messages)-1]
 		last.Content = append(last.Content, ContentPart{
-			Type:     "input_image",
-			ImageURL: url,
+			Type: "image_url",
+			ImageURL: &ImageURLData{
+				URL: url,
+			},
 		})
 
 		return nil
 	}
 }
 
+// WithImageBytes attaches an image from raw bytes (SDK encodes automatically).
 func WithImageBytes(data []byte, mimeType string) Option {
 	return func(r *Request) error {
 		if len(data) == 0 {
@@ -260,8 +285,10 @@ func WithImageBytes(data []byte, mimeType string) Option {
 
 		last := &r.Messages[len(r.Messages)-1]
 		last.Content = append(last.Content, ContentPart{
-			Type:     "input_image",
-			ImageURL: "data:" + mimeType + ";base64," + encoded,
+			Type: "image_url",
+			ImageURL: &ImageURLData{
+				URL: "data:" + mimeType + ";base64," + encoded,
+			},
 		})
 
 		return nil

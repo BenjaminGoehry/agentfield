@@ -232,7 +232,7 @@ func TestComplete_WithOpenRouterHeaders(t *testing.T) {
 						Content: []ContentPart{
 							{
 								Type: "text",
-								Text: "Reponse",
+								Text: "Response",
 							},
 						},
 					},

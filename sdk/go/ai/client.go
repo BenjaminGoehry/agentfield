@@ -83,17 +83,7 @@ func (c *Client) CompleteWithMessages(ctx context.Context, messages []Message, o
 
 func (c *Client) doRequest(ctx context.Context, req *Request) (*Response, error) {
 	// Marshal request
-
-	var body []byte
-	var err error
-
-	if c.config.IsOpenRouter() {
-		payload := transformForOpenRouter(req)
-		body, err = json.Marshal(payload)
-		fmt.Printf("[DEBUG] OpenRouter JSON:\n%s\n", string(body))
-	} else {
-		body, err = json.Marshal(req)
-	}
+	body, err := json.Marshal(req)
 	if err != nil {
 		return nil, fmt.Errorf("marshal request: %w", err)
 	}

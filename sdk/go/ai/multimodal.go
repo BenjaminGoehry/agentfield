@@ -3,14 +3,15 @@ package ai
 import "strings"
 
 func detectMIMEType(path string) string {
+	lower := strings.ToLower(path)
 	switch {
-	case strings.HasSuffix(path, ".png"):
+	case strings.HasSuffix(lower, ".png"):
 		return "image/png"
-	case strings.HasSuffix(path, ".jpg"), strings.HasSuffix(path, ".jpeg"):
+	case strings.HasSuffix(lower, ".jpg"), strings.HasSuffix(lower, ".jpeg"):
 		return "image/jpeg"
-	case strings.HasSuffix(path, ".gif"):
+	case strings.HasSuffix(lower, ".gif"):
 		return "image/gif"
-	case strings.HasSuffix(path, ".webp"):
+	case strings.HasSuffix(lower, ".webp"):
 		return "image/webp"
 	default:
 		return "application/octet-stream"
