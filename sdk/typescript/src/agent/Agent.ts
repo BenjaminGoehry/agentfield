@@ -21,6 +21,8 @@ import { ReasonerContext } from '../context/ReasonerContext.js';
 import { SkillContext } from '../context/SkillContext.js';
 import { AIClient } from '../ai/AIClient.js';
 import { AgentFieldClient } from '../client/AgentFieldClient.js';
+import type { HarnessRunner } from '../harness/runner.js';
+import type { HarnessOptions, HarnessResult } from '../harness/types.js';
 import { MemoryClient } from '../memory/MemoryClient.js';
 import { MemoryEventClient } from '../memory/MemoryEventClient.js';
 import {
@@ -41,6 +43,8 @@ import { MCPToolRegistrar } from '../mcp/MCPToolRegistrar.js';
 import { LocalVerifier } from '../verification/LocalVerifier.js';
 
 class TargetNotFoundError extends Error {}
+
+const harnessRunners = new WeakMap<object, HarnessRunner>();
 
 export class Agent {
   readonly config: AgentConfig;
@@ -174,6 +178,20 @@ export class Agent {
 
   getAIClient() {
     return this.aiClient;
+  }
+
+  async getHarnessRunner(): Promise<HarnessRunner> {
+    const cached = harnessRunners.get(this);
+    if (cached) return cached;
+    const { HarnessRunner: RunnerClass } = await import('../harness/runner.js');
+    const runner = new RunnerClass(this.config.harnessConfig);
+    harnessRunners.set(this, runner);
+    return runner;
+  }
+
+  async harness(prompt: string, options?: HarnessOptions): Promise<HarnessResult> {
+    const runner = await this.getHarnessRunner();
+    return runner.run(prompt, options ?? {});
   }
 
   getMemoryInterface(metadata?: ExecutionMetadata) {

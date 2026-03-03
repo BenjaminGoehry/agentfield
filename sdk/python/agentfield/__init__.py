@@ -2,6 +2,7 @@ from .agent import Agent
 from .router import AgentRouter
 from .types import (
     AIConfig,
+    HarnessConfig,
     CompactDiscoveryResponse,
     DiscoveryResponse,
     DiscoveryResult,
@@ -9,6 +10,7 @@ from .types import (
     ReasonerDefinition,
     SkillDefinition,
 )
+from .harness import HarnessResult
 from .multimodal import (
     Text,
     Image,
@@ -59,6 +61,8 @@ from .client import ApprovalRequestResponse, ApprovalResult, ApprovalStatusRespo
 __all__ = [
     "Agent",
     "AIConfig",
+    "HarnessConfig",
+    "HarnessResult",
     "MemoryConfig",
     "ReasonerDefinition",
     "SkillDefinition",
