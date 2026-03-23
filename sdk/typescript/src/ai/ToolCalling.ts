@@ -97,6 +97,12 @@ export interface AIToolRequestOptions extends AIRequestOptions {
   maxToolCalls?: number;
 }
 
+type ToolConfig = {
+  description:  string
+  inputSchema:  any;
+  execute?: (args: Record<string, unknown>) => Promise<any>;
+}
+
 // ---------------------------------------------------------------------------
 // Capability -> Tool Definition Conversion
 // ---------------------------------------------------------------------------
@@ -367,12 +373,13 @@ function wrapToolsWithObservability(
   let totalCalls = 0;
   const observableTools: ToolSet = {};
 
-  for (const [name, t] of Object.entries(toolMap)) {
-    const originalTool = t as any;
-    observableTools[name] = tool({
+  for (const name in toolMap) {
+    const originalTool = toolMap[name];
+
+    const config: ToolConfig = {
       description: originalTool.description ?? '',
-      inputSchema: originalTool.inputSchema,
-      execute: async (args: any) => {
+      inputSchema:  originalTool.inputSchema,
+      execute: async (args: Record<string, unknown>) => {
         totalCalls++;
         trace.totalToolCalls = totalCalls;
 
@@ -411,7 +418,8 @@ function wrapToolsWithObservability(
           return { error: record.error, tool: name };
         }
       }
-    });
+    }
+    observableTools[name] = tool(config);
   }
 
   return { tools: observableTools, getTotalCalls: () => totalCalls };
@@ -442,11 +450,12 @@ export async function executeToolCallLoop(
   if (needsLazyHydration) {
     // Create non-executable tool stubs so the LLM selects but doesn't execute
     const selectionTools: ToolSet = {};
+    for (const name in toolMap) {
     for (const [name, t] of Object.entries(toolMap)) {
-      const orig = t as any;
+      const originalTool = toolMap[name];
       selectionTools[name] = tool({
-        description: orig.description ?? '',
-        inputSchema: orig.inputSchema,
+        description: originalTool.description ?? '',
+        inputSchema: originalTool.inputSchema,
         // No execute — AI SDK will stop after LLM selects tools
       });
     }
