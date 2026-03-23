@@ -505,6 +505,8 @@ export async function executeToolCallLoop(
     }
   });
 
+
+  
   trace.finalResponse = result.text;
   trace.totalTurns = result.steps.length;
 
